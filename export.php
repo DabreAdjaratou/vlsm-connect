@@ -5,16 +5,21 @@ include('includes/MysqliDb.php');
 include('includes/General.php');
 $general = new Deforay_Commons_General();
 $tableName = "vl_request_form";
+if(PHP_SAPI === 'cli'){
+  $param = $argv[1];
+}else{
+  $param = $_GET['type'];
+}
 try {
   //Add request/result xml
   $formQuery ="SELECT value FROM global_config where name='vl_form'";
   $formResult = $db->rawQuery($formQuery);
   $country = $formResult[0]['value'];
   $vlResult = array();
-  if(isset($_GET['type']) && $_GET['type'] == 'request'){
+  if(isset($param) && $param == 'request'){
     $vlQuery="SELECT * FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_request_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
-  }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+  }else if(isset($param) && $param == 'result'){
     $vlQuery="SELECT * FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_result_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
   }
@@ -174,13 +179,13 @@ try {
           $xmlData.="<date_result_printed>".$vl['date_result_printed']."</date_result_printed>\n";
           $xmlData.="<result_coming_from>".$vl['result_coming_from']."</result_coming_from>\n";
           $xmlData.="<form_id>".$vl['form_id']."</form_id>\n";
-          if(isset($_GET['type']) && $_GET['type'] == 'request'){
+          if(isset($param) && $param == 'request'){
             $xmlData.="<test_request_export>1</test_request_export>\n";
           }else{
             $xmlData.="<test_request_export>".$vl['test_request_export']."</test_request_export>\n";
           }
           $xmlData.="<test_request_import>".$vl['test_request_import']."</test_request_import>\n";
-          if(isset($_GET['type']) && $_GET['type'] == 'result'){
+          if(isset($param) && $param == 'result'){
             $xmlData.="<test_result_export>1</test_result_export>\n";
           }else{
             $xmlData.="<test_result_export>".$vl['test_result_export']."</test_result_export>\n";
@@ -189,14 +194,14 @@ try {
           $xmlData.="</vl_request_form>\n";
           $xmlData .="</vl_request>";
           $fileName = $vl['sample_code'].'.xml';
-          if(isset($_GET['type']) && $_GET['type'] == 'request'){
+          if(isset($param) && $param == 'request'){
             $fp = fopen($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new". DIRECTORY_SEPARATOR. $fileName, 'w+');
             fwrite($fp, $xmlData);
             fclose($fp);
             //Update test request export flag
             $db=$db->where('sample_code',$vl['sample_code']);
             $db->update($tableName,array('test_request_export'=>1));
-          }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+          }else if(isset($param) && $param == 'result'){
             $fp = fopen($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new". DIRECTORY_SEPARATOR. $fileName, 'w+');
             fwrite($fp, $xmlData);
             fclose($fp);

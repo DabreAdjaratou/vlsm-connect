@@ -5,6 +5,11 @@ include('includes/MysqliDb.php');
 include('includes/General.php');
 $general = new Deforay_Commons_General();
 $tableName = "vl_request_form";
+if(PHP_SAPI === 'cli'){
+  $param = $argv[1];
+}else{
+  $param = $_GET['type'];
+}
 try {
   //Add request/result xml
   $formQuery ="SELECT value FROM global_config where name='vl_form'";
@@ -14,17 +19,17 @@ try {
   $configResult = $db->rawQuery($configQuery);
   if(isset($configResult[0]['value']) && trim($configResult[0]['value'])!= '' && file_exists($configResult[0]['value'])){
       $files = array();
-      if(isset($_GET['type']) && $_GET['type'] == 'request'){
+      if(isset($param) && $param == 'request'){
           $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new");
-      }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+      }else if(isset($param) && $param == 'result'){
           $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new");
       }
       foreach($files as $file) {
           if(count($files) >2){
             if (in_array($file, array(".",".."))) continue;
-            if(isset($_GET['type']) && $_GET['type'] == 'request'){
+            if(isset($param) && $param == 'request'){
                 $xmlFile = file_get_contents($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-            }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+            }else if(isset($param) && $param == 'result'){
                $xmlFile = file_get_contents($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);  
             }
             $xml = new SimpleXMLElement($xmlFile);
@@ -470,7 +475,7 @@ try {
                   if(isset($val->test_request_export)){
                      $data['test_request_export'] = (string)$val->test_request_export;
                   }
-                  if(isset($_GET['type']) && $_GET['type'] == 'request'){
+                  if(isset($param) && $param == 'request'){
                      $data['test_request_import'] = 1;
                   }else{
                     if(isset($val->test_request_import)){
@@ -480,7 +485,7 @@ try {
                   if(isset($val->test_result_export)){
                      $data['test_result_export'] = (string)$val->test_result_export;
                   }
-                  if(isset($_GET['type']) && $_GET['type'] == 'result'){
+                  if(isset($param) && $param == 'result'){
                      $data['test_result_import'] = 1;
                   }else{
                     if(isset($val->test_result_import)){
@@ -493,12 +498,12 @@ try {
                   if(isset($sampleResult[0]['vl_sample_id'])){
                      $db=$db->where('sample_code',(string)$val->sample_code);
                      $db->update($tableName,$data);
-                     if(isset($_GET['type']) && $_GET['type'] == 'request'){
+                     if(isset($param) && $param == 'request'){
                         //Update node element
                         $info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . $file);
                         $info->vl_request_form->test_request_import = 1;
                         $info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . $file);
-                     }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+                     }else if(isset($param) && $param == 'result'){
                         //Update node element
                         $info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
                         $info->vl_request_form->test_result_import = 1;
@@ -508,7 +513,7 @@ try {
                         unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
                      }
                   }else{
-                     if(isset($_GET['type']) && $_GET['type'] == 'request'){
+                     if(isset($param) && $param == 'request'){
                         $data['created_by'] = 1;
                         $data['created_on'] = $general->getDateTime();
                         $db->insert($tableName,$data);
@@ -519,7 +524,7 @@ try {
                         //move updated new xml file
                         copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
                         unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                     }else if(isset($_GET['type']) && $_GET['type'] == 'result'){
+                     }else if(isset($param) && $param == 'result'){
                         copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
                         unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
                      }
