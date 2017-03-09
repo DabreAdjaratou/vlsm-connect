@@ -11,7 +11,7 @@ if(PHP_SAPI === 'cli'){
   $param = $_GET['type'];
 }
 try {
-  //Add request/result xml
+  //Export request/result xml
   $formQuery ="SELECT value FROM global_config where name='vl_form'";
   $formResult = $db->rawQuery($formQuery);
   $country = $formResult[0]['value'];

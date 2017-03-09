@@ -11,7 +11,7 @@ if(PHP_SAPI === 'cli'){
   $param = $_GET['type'];
 }
 try {
-  //Add request/result xml
+  //Import request/result xml
   $formQuery ="SELECT value FROM global_config where name='vl_form'";
   $formResult = $db->rawQuery($formQuery);
   $country = $formResult[0]['value'];
@@ -24,8 +24,8 @@ try {
       }else if(isset($param) && $param == 'result'){
           $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new");
       }
-      foreach($files as $file) {
-          if(count($files) >2){
+      if(count($files) >2){
+          foreach($files as $file) {
             if (in_array($file, array(".",".."))) continue;
             if(isset($param) && $param == 'request'){
                 $xmlFile = file_get_contents($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
@@ -533,6 +533,20 @@ try {
               }
             }
           }
+      }else{
+        if(isset($param) && $param == 'result'){
+          $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced");
+          foreach($files as $file) {
+             if(in_array($file, array(".",".."))) continue;
+             $sampleCode = explode(".",$file);
+             $vlQuery="SELECT sample_code FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
+             $vlResult = $db->rawQuery($vlQuery);
+             if(isset($vlResult[0]['sample_code'])){
+                $db=$db->where('sample_code',$vlResult[0]['sample_code']);
+                $db->update($tableName,array('test_result_import'=>1));
+             }
+          }
+        }
       }
   }
 }catch (Exception $exc) {
