@@ -20,7 +20,7 @@ try {
     $vlQuery="SELECT * FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_request_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
   }else if(isset($param) && $param == 'result'){
-    $vlQuery="SELECT * FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_result_export = 0";
+    $vlQuery="SELECT * FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND (vl.result!= '' AND vl.result IS NOT NULL) AND vl.test_result_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
   }
   if(count($vlResult) >0){
