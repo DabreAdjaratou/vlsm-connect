@@ -227,9 +227,9 @@ try {
         //sample section
         if(count($xml->sample) >0){
           if(isset($xml->sample->sample_collection_date)){
-            $data['sample_collection_date']=(string)$xml->patient->sample_collection_date;
+            $data['sample_collection_date']=(string)$xml->sample->sample_collection_date;
           }if(isset($xml->sample->date_of_demand)){
-            $data['date_of_demand']=(string)$xml->patient->date_of_demand;
+            $data['date_of_demand']=(string)$xml->sample->date_of_demand;
           }if(isset($xml->sample->sample_type)){
               $data['sample_id'] = NULL;
               $specimenTypeQuery = 'select sample_id from r_sample_type where sample_name = "'.(string)$xml->sample->sample_type.'"';
@@ -245,13 +245,13 @@ try {
                  $data['sample_id'] = $id;
               }
           }if(isset($xml->sample->plasma_conservation_temperature)){
-            $data['plasma_conservation_temperature']=(string)$xml->patient->plasma_conservation_temperature;
+            $data['plasma_conservation_temperature']=(string)$xml->sample->plasma_conservation_temperature;
           }if(isset($xml->sample->duration_of_conservation)){
-            $data['duration_of_conservation']=(string)$xml->patient->duration_of_conservation;
+            $data['duration_of_conservation']=(string)$xml->sample->duration_of_conservation;
           }if(isset($xml->sample->viral_load_no)){
-            $data['viral_load_no']=(string)$xml->patient->viral_load_no;
+            $data['viral_load_no']=(string)$xml->sample->viral_load_no;
           }if(isset($xml->sample->vl_test_platform)){
-            $data['vl_test_platform']=(string)$xml->patient->vl_test_platform;
+            $data['vl_test_platform']=(string)$xml->sample->vl_test_platform;
           }if(isset($xml->sample->testing_status)){
             $data['status'] = NULL;
             $statusQuery = 'select status_id from testing_status where status_name = "'.(string)$xml->sample->testing_status.'" OR status_name = "'.strtolower((string)$xml->sample->testing_status).'"';
@@ -359,6 +359,8 @@ try {
             $data['urgency']=(string)$xml->general->urgency;
           }if(isset($xml->general->sample_code)) {
             $data['sample_code']=(string)$xml->general->sample_code;
+          }if(isset($xml->general->serial_no)) {
+            $data['serial_no']=(string)$xml->general->serial_no;
           }if(isset($xml->general->date_dispatched_from_clinic_to_lab)) {
             $data['date_dispatched_from_clinic_to_lab']=(string)$xml->general->date_dispatched_from_clinic_to_lab;
           }if(isset($xml->general->date_of_completion_of_viral_load)) {
