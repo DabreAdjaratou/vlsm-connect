@@ -326,6 +326,11 @@ try {
         }
         //general
         if(count($xml->general) > 0){
+          if(isset($xml->general->form_id)){
+            $data['form_id']=(string)$xml->form_id;
+          }else{
+            $data['form_id']= $country;
+          }
           if(isset($xml->general->batch_code)){
             $data['lab_id'] = NULL;
             $batch_code_key=NULL;

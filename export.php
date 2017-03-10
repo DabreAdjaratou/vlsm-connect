@@ -181,6 +181,7 @@ try {
             $xmlData.="<action>".$param."</action>";
             $xmlData.="<instance>".$vl['vl_instance_id']."</instance>";
             $xmlData.="<general>";
+              $xmlData.="<form_id>".$country."</form_id>\n";
               $xmlData.="<sample_code>".$vl['sample_code']."</sample_code>\n";
               $xmlData.="<date_generated>".$vl['created_on']."</date_generated>";
               $xmlData.="<date_modified>".$vl['modified_on']."</date_modified>";
