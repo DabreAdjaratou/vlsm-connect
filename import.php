@@ -380,29 +380,35 @@ try {
         //print_r($data);die;
         $sampleQuery = 'select vl_sample_id from vl_request_form where sample_code = "'.(string)$xml->general->sample_code.'"';
         $sampleResult = $db->rawQuery($sampleQuery);
-        if(!isset($sampleResult[0]['vl_sample_id'])){
-          if(isset($param) && $param == 'request'){
-             $data['created_by'] = 1;
-             $data['created_on'] = $general->getDateTime();
-             $db->insert($tableName,$data);
-             //update xml node element
-              //$info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-              //$info->vl_request_form->test_request_import = 1;
-              //$info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-             //move updated new xml file
-             copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
-             unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
-          }else if(isset($param) && $param == 'result'){
-             copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
-             unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
-          }
-        }else{
+        if(isset($sampleResult[0]['vl_sample_id'])){
           if(isset($param) && $param == 'result'){
             $db=$db->where('sample_code',(string)$xml->general->sample_code);
             $db->update($tableName,$data);
            //move updated new xml file
             copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
             unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+          }else if(isset($param) && $param == 'request'){
+            copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+          }
+        }else{
+          if(isset($param) && $param == 'request'){
+             $data['created_by'] = 1;
+             $data['created_on'] = $general->getDateTime();
+             $id = $db->insert($tableName,$data);
+             //update xml node element
+              //$info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
+              //$info->vl_request_form->test_request_import = 1;
+              //$info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
+             //move updated new xml file
+             if($id >0){
+               copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+               unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+             }else{
+               copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+             }
+          }else if(isset($param) && $param == 'result'){
+             copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
+             unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$xml->general->sample_code.'.xml');
           }
         }
       }
