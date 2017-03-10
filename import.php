@@ -495,57 +495,47 @@ try {
                   //print_r($data);die;
                   $sampleQuery = 'select vl_sample_id from vl_request_form where sample_code = "'.(string)$val->sample_code.'"';
                   $sampleResult = $db->rawQuery($sampleQuery);
-                  if(isset($sampleResult[0]['vl_sample_id'])){
+                  if(!isset($sampleResult[0]['vl_sample_id'])){
+                    if(isset($param) && $param == 'request'){
+                       $data['created_by'] = 1;
+                       $data['created_on'] = $general->getDateTime();
+                       $db->insert($tableName,$data);
+                       //update xml node element
+                        //$info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
+                        //$info->vl_request_form->test_request_import = 1;
+                        //$info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
+                       //move updated new xml file
+                       copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
+                       unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
+                    }else if(isset($param) && $param == 'result'){
+                       copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
+                       unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
+                    }
+                }else{
+                  if(isset($param) && $param == 'result'){
                      $db=$db->where('sample_code',(string)$val->sample_code);
                      $db->update($tableName,$data);
-                     if(isset($param) && $param == 'request'){
-                        //Update node element
-                        $info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . $file);
-                        $info->vl_request_form->test_request_import = 1;
-                        $info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . $file);
-                     }else if(isset($param) && $param == 'result'){
-                        //Update node element
-                        $info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-                        $info->vl_request_form->test_result_import = 1;
-                        $info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-                         //move updated new xml file
-                        copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                        unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                     }
-                  }else{
-                     if(isset($param) && $param == 'request'){
-                        $data['created_by'] = 1;
-                        $data['created_on'] = $general->getDateTime();
-                        $db->insert($tableName,$data);
-                        //Update node element
-                        $info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-                        $info->vl_request_form->test_request_import = 1;
-                        $info->asXML($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
-                        //move updated new xml file
-                        copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                        unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                     }else if(isset($param) && $param == 'result'){
-                        copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "error" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                        unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
-                     }
+                     //move updated new xml file
+                      copy($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml',$configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
+                      unlink($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . (string)$val->sample_code.'.xml');
                   }
                 }
               }
             }
           }
-      }else{
-        if(isset($param) && $param == 'result'){
-          $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced");
-          foreach($files as $file) {
-             if(in_array($file, array(".",".."))) continue;
-             $sampleCode = explode(".",$file);
-             $vlQuery="SELECT sample_code FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
-             $vlResult = $db->rawQuery($vlQuery);
-             if(isset($vlResult[0]['sample_code'])){
-                $db=$db->where('sample_code',$vlResult[0]['sample_code']);
-                $db->update($tableName,array('test_result_import'=>1));
-             }
-          }
+      }
+      //update imported vl result status
+      if(isset($param) && $param == 'result'){
+        $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced");
+        foreach($files as $file) {
+           if(in_array($file, array(".",".."))) continue;
+           $sampleCode = explode(".",$file);
+           $vlQuery="SELECT sample_code FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
+           $vlResult = $db->rawQuery($vlQuery);
+           if(isset($vlResult[0]['sample_code'])){
+              $db=$db->where('sample_code',$vlResult[0]['sample_code']);
+              $db->update($tableName,array('test_result_import'=>1));
+           }
         }
       }
   }
