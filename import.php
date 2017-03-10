@@ -327,7 +327,7 @@ try {
         //general
         if(count($xml->general) > 0){
           if(isset($xml->general->form_id)){
-            $data['form_id']=(string)$xml->form_id;
+            $data['form_id']=(string)$xml->general->form_id;
           }else{
             $data['form_id']= $country;
           }
