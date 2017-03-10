@@ -4,7 +4,7 @@ ob_start();
 include('includes/MysqliDb.php');
 include('includes/General.php');
 $general = new Deforay_Commons_General();
-$tableName = "vl_request_form";
+$tableName = "vl_request_form1";
 if(PHP_SAPI === 'cli'){
   $param = $argv[1];
 }else{
@@ -326,11 +326,6 @@ try {
         }
         //general
         if(count($xml->general) > 0){
-          if(isset($param) && $param == 'request'){
-            $vl['test_request_import'] = 1;
-          }if(isset($param) && $param == 'result'){
-            $vl['test_result_import'] = 1;
-          }
           if(isset($xml->general->batch_code)){
             $data['lab_id'] = NULL;
             $batch_code_key=NULL;
@@ -376,9 +371,15 @@ try {
           }if(isset($xml->general->test_result_import)) {
             $data['test_result_import']=(string)$xml->general->test_result_import;
           }
+          //final flag set
+          if(isset($param) && $param == 'request'){
+            $data['test_request_import'] = 1;
+          }if(isset($param) && $param == 'result'){
+            $data['test_result_import'] = 1;
+          }
         }
         //print_r($data);die;
-        $sampleQuery = 'select vl_sample_id from vl_request_form where sample_code = "'.(string)$xml->general->sample_code.'"';
+        $sampleQuery = 'select vl_sample_id from vl_request_form1 where sample_code = "'.(string)$xml->general->sample_code.'"';
         $sampleResult = $db->rawQuery($sampleQuery);
         if(isset($sampleResult[0]['vl_sample_id'])){
           if(isset($param) && $param == 'result'){
@@ -420,7 +421,7 @@ try {
         foreach($files as $file) {
            if(in_array($file, array(".",".."))) continue;
            $sampleCode = explode(".",$file);
-           $vlQuery="SELECT sample_code FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
+           $vlQuery="SELECT sample_code FROM vl_request_form1 as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
            $vlResult = $db->rawQuery($vlQuery);
            if(isset($vlResult[0]['sample_code'])){
               $db=$db->where('sample_code',$vlResult[0]['sample_code']);
