@@ -15,6 +15,8 @@ try {
   $formQuery ="SELECT value FROM global_config where name='vl_form'";
   $formResult = $db->rawQuery($formQuery);
   $country = $formResult[0]['value'];
+  $configQuery ="SELECT value FROM global_config where name='sync_path'";
+  $configResult = $db->rawQuery($configQuery);
   $vlResult = array();
   if(isset($param) && $param == 'request'){
     $vlQuery="SELECT * FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_request_export = 0";
@@ -24,8 +26,6 @@ try {
     $vlResult = $db->rawQuery($vlQuery);
   }
   if(count($vlResult) >0){
-    $configQuery ="SELECT value FROM global_config where name='sync_path'";
-    $configResult = $db->rawQuery($configQuery);
     if(isset($configResult[0]['value']) && trim($configResult[0]['value'])!= '' && file_exists($configResult[0]['value'])){
          if(!file_exists($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request")){
               mkdir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request");
