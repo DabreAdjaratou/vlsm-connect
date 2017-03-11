@@ -182,8 +182,6 @@ try {
             $data['request_clinician']=(string)$xml->patient->request_clinician;
           }if(isset($xml->patient->clinician_ph_no)){
             $data['clinician_ph_no']=(string)$xml->patient->clinician_ph_no;
-          }if(isset($xml->patient->sample_testing_date)){
-            $data['sample_testing_date']=(string)$xml->patient->sample_testing_date;
           }if(isset($xml->patient->vl_focal_person)){
             $data['vl_focal_person']=(string)$xml->patient->vl_focal_person;
           }if(isset($xml->patient->focal_person_phone_number)){
@@ -200,8 +198,6 @@ try {
             $data['sample_rejection_facility']=(string)$xml->patient->sample_rejection_facility;
           }if(isset($xml->patient->sample_rejection_reason)){
             $data['sample_rejection_reason']=(string)$xml->patient->sample_rejection_reason;
-          }if(isset($xml->patient->other_id)){
-            $data['other_id']=(string)$xml->patient->other_id;
           }if(isset($xml->patient->age_in_yrs)){
             $data['age_in_yrs']=(string)$xml->patient->age_in_yrs;
           }if(isset($xml->patient->age_in_mnts)){
@@ -214,6 +210,8 @@ try {
             $data['treatment_details']=(string)$xml->patient->treatment_details;
           }if(isset($xml->patient->drug_substitution)){
             $data['drug_substitution']=(string)$xml->patient->drug_substitution;
+          }if(isset($xml->patient->collected_by)){
+            $data['collected_by']=(string)$xml->patient->collected_by;
           }if(isset($xml->patient->support_partner)){
             $data['support_partner']=(string)$xml->patient->support_partner;
           }if(isset($xml->patient->has_patient_changed_regimen)){
@@ -260,8 +258,8 @@ try {
               $data['status'] = $statusResult[0]['status_id'];
             }else{
               $tStatusData = array(
-                                 'status_name'=>(string)$xml->sample->testing_status
-                              );
+                'status_name'=>(string)$xml->sample->testing_status
+              );
               $id = $db->insert('testing_status',$tStatusData);
               $data['status'] = $id;
             }
@@ -269,8 +267,8 @@ try {
         }
         //lab section
         if(count($xml->lab) >0){
+          $data['lab_id'] = NULL;
           if(isset($xml->lab->lab_name)){
-            $data['lab_id'] = NULL;
             $labQuery = 'select facility_id from facility_details where facility_name = "'.(string)$xml->lab->lab_name.'"';
             $labResult = $db->rawQuery($labQuery);
             if(isset($labResult[0]['facility_id'])){
@@ -294,10 +292,94 @@ try {
         }
         //result section
         if(count($xml->result) >0){
+          //result approved by
+          if(isset($xml->result->result_approved_by) && (string)$xml->result->result_approved_by!= ''){
+            //get role
+            $roleId = 0;
+            if(isset($xml->result->result_approved_by_role) && (string)$xml->result->result_approved_by_role != ''){
+              $roleQuery = 'select role_id from roles where role_name = "'.(string)$xml->result->result_approved_by_role.'"';
+              $roleResult = $db->rawQuery($roleQuery);
+              if(isset($roleResult[0]['role_id'])){
+                $roleId = $roleResult[0]['role_id'];
+              }else{
+                $roleData = array(
+                  'role_name'=>(string)$xml->result->result_approved_by_role,
+                  'role_code'=>NULL,
+                  'status'=>NULL,
+                  'landing_page'=>NULL
+                );
+                $id = $db->insert('roles',$roleData);
+                $roleId = $id;
+              }
+            }
+            //set approved by info.
+            $userQuery = 'select user_id from user_details where user_name = "'.(string)$xml->result->result_approved_by.'"';
+            $userResult = $db->rawQuery($userQuery);
+            if(isset($userResult[0]['user_id'])){
+              $userId = $userResult[0]['user_id'];
+            }else{
+              $approvedByData = array(
+                  'user_name'=>(string)$xml->result->result_approved_by,
+                  'email'=>NULL,
+                  'phone_number'=>NULL,
+                  'login_id'=>NULL,
+                  'password'=>NULL,
+                  'role_id'=>$roleId,
+                  'status'=>NULL
+                );
+              $id = $db->insert('user_details',$approvedByData);
+              $userId = $id;
+            }
+            $data['result_approved_by']= $userId;
+            $data['result_approved_on']= (string)$xml->result->result_approved_on;
+          }
+          //result reviewed by
+          if(isset($xml->result->result_reviewed_by) && (string)$xml->result->result_reviewed_by!= ''){
+            //get role
+            $roleId = 0;
+            if(isset($xml->result->result_reviewed_by_role) && (string)$xml->result->result_reviewed_by_role != ''){
+              $roleQuery = 'select role_id from roles where role_name = "'.(string)$xml->result->result_reviewed_by_role.'"';
+              $roleResult = $db->rawQuery($roleQuery);
+              if(isset($roleResult[0]['role_id'])){
+                $roleId = $roleResult[0]['role_id'];
+              }else{
+                $roleData = array(
+                  'role_name'=>(string)$xml->result->result_reviewed_by_role,
+                  'role_code'=>NULL,
+                  'status'=>NULL,
+                  'landing_page'=>NULL
+                );
+                $id = $db->insert('roles',$roleData);
+                $roleId = $id;
+              }
+            }
+            //set reviewed by info.
+            $userQuery = 'select user_id from user_details where user_name = "'.(string)$xml->result->result_reviewed_by.'"';
+            $userResult = $db->rawQuery($userQuery);
+            if(isset($userResult[0]['user_id'])){
+              $userId = $userResult[0]['user_id'];
+            }else{
+              $reviewedByData = array(
+                  'user_name'=>(string)$xml->result->result_reviewed_by,
+                  'email'=>NULL,
+                  'phone_number'=>NULL,
+                  'login_id'=>NULL,
+                  'password'=>NULL,
+                  'role_id'=>$roleId,
+                  'status'=>NULL
+                );
+              $id = $db->insert('user_details',$reviewedByData);
+              $userId = $id;
+            }
+            $data['result_reviewed_by']= $userId;
+            $data['result_reviewed_date']= (string)$xml->result->result_reviewed_date;
+          }
           if(isset($xml->result->log_value)){
             $data['log_value']=(string)$xml->result->log_value;
           }if(isset($xml->result->absolute_value)){
             $data['absolute_value']=(string)$xml->result->absolute_value;
+          }if(isset($xml->result->absolute_decimal_value)){
+            $data['absolute_decimal_value']=(string)$xml->result->absolute_decimal_value;
           }if(isset($xml->result->text_value)){
             $data['text_value']=(string)$xml->result->text_value;
           }if(isset($xml->result->result)){
@@ -306,8 +388,6 @@ try {
             $data['comments']=(string)$xml->result->comments;
           }if(isset($xml->result->justification)){
             $data['justification']=(string)$xml->result->justification;
-          }if(isset($xml->result->result_reviewed_date)){
-            $data['result_reviewed_date']=(string)$xml->result->result_reviewed_date;
           }if(isset($xml->result->test_methods)){
             $data['test_methods']=(string)$xml->result->test_methods;
           }if(isset($xml->result->contact_complete_status)){
@@ -331,34 +411,119 @@ try {
           }else{
             $data['form_id']= $country;
           }
+          //created by
+          if(isset($xml->general->created_by) && (string)$xml->general->created_by != ''){
+            //get role
+            $roleId = 0;
+            if(isset($xml->general->created_by_role) && (string)$xml->general->created_by_role!= ''){
+              $roleQuery = 'select role_id from roles where role_name = "'.(string)$xml->general->created_by_role.'"';
+              $roleResult = $db->rawQuery($roleQuery);
+              if(isset($roleResult[0]['role_id'])){
+                $roleId = $roleResult[0]['role_id'];
+              }else{
+                $roleData = array(
+                  'role_name'=>(string)$xml->general->created_by_role,
+                  'role_code'=>NULL,
+                  'status'=>NULL,
+                  'landing_page'=>NULL
+                );
+                $id = $db->insert('roles',$roleData);
+                $roleId = $id;
+              }
+            }
+            //set created by info.
+            $userQuery = 'select user_id from user_details where user_name = "'.(string)$xml->general->created_by.'"';
+            $userResult = $db->rawQuery($userQuery);
+            if(isset($userResult[0]['user_id'])){
+              $userId = $userResult[0]['user_id'];
+            }else{
+              $createdByData = array(
+                  'user_name'=>(string)$xml->general->created_by,
+                  'email'=>NULL,
+                  'phone_number'=>NULL,
+                  'login_id'=>NULL,
+                  'password'=>NULL,
+                  'role_id'=>$roleId,
+                  'status'=>NULL
+                );
+              $id = $db->insert('user_details',$createdByData);
+              $userId = $id;
+            }
+            $data['created_by']= $userId;
+            $data['created_on']= (string)$xml->general->date_generated;
+          }
+          //modified by
+          if(isset($xml->general->modified_by) && (string)$xml->general->modified_by!= ''){
+            //get role
+            $roleId = 0;
+            if(isset($xml->general->modified_by_role) && (string)$xml->general->modified_by_role!= ''){
+              $roleQuery = 'select role_id from roles where role_name = "'.(string)$xml->general->modified_by_role.'"';
+              $roleResult = $db->rawQuery($roleQuery);
+              if(isset($roleResult[0]['role_id'])){
+                $roleId = $roleResult[0]['role_id'];
+              }else{
+                $roleData = array(
+                  'role_name'=>(string)$xml->general->modified_by_role,
+                  'role_code'=>NULL,
+                  'status'=>NULL,
+                  'landing_page'=>NULL
+                );
+                $id = $db->insert('roles',$roleData);
+                $roleId = $id;
+              }
+            }
+            //set modified by info.
+            $userQuery = 'select user_id from user_details where user_name = "'.(string)$xml->general->modified_by.'"';
+            $userResult = $db->rawQuery($userQuery);
+            if(isset($userResult[0]['user_id'])){
+              $userId = $userResult[0]['user_id'];
+            }else{
+              $modifiedByData = array(
+                  'user_name'=>(string)$xml->general->modified_by,
+                  'email'=>NULL,
+                  'phone_number'=>NULL,
+                  'login_id'=>NULL,
+                  'password'=>NULL,
+                  'role_id'=>$roleId,
+                  'status'=>NULL
+                );
+              $id = $db->insert('user_details',$modifiedByData);
+              $userId = $id;
+            }
+            $data['modified_by']= $userId;
+            $data['modified_on']= (string)$xml->general->date_modified;
+          }
           if(isset($xml->general->batch_code)){
-            $data['lab_id'] = NULL;
             $batch_code_key=NULL;
             $batch_status=NULL;
             $batchQuery = 'select batch_id from batch_details where batch_code = "'.(string)$xml->general->batch_code.'"';
             $batchResult = $db->rawQuery($batchQuery);
             if(isset($batchResult[0]['batch_id'])){
-             $data['batch_id'] = $batchResult[0]['batch_id'];
+              $data['batch_id'] = $batchResult[0]['batch_id'];
             }else{
-                if(isset($xml->general->batch_code_key)){
-                  $batch_code_key = (string)$xml->general->batch_code_key;
-                }
-                if(isset($xml->general->batch_status)){
-                  $batch_status = (string)$xml->general->batch_status;
-                }
-                $batchData = array(
-                                'batch_code'=>(string)$xml->general->batch_code,
-                                'batch_code_key'=>$batch_code_key,
-                                'batch_status'=>$batch_status
-                            );
-               $id = $db->insert('batch_details',$batchData);
-               $data['batch_id'] = $id;
+              if(isset($xml->general->batch_code_key)){
+                $batch_code_key = (string)$xml->general->batch_code_key;
+              }
+              if(isset($xml->general->batch_status)){
+                $batch_status = (string)$xml->general->batch_status;
+              }
+              $batchData = array(
+                  'batch_code'=>(string)$xml->general->batch_code,
+                  'batch_code_key'=>$batch_code_key,
+                  'batch_status'=>$batch_status
+              );
+             $id = $db->insert('batch_details',$batchData);
+             $data['batch_id'] = $id;
             }
           }
           if(isset($xml->general->urgency)) {
             $data['urgency']=(string)$xml->general->urgency;
           }if(isset($xml->general->sample_code)) {
             $data['sample_code']=(string)$xml->general->sample_code;
+          }if(isset($xml->general->sample_code_key)) {
+            $data['sample_code_key']=(string)$xml->general->sample_code_key;
+          }if(isset($xml->general->sample_code_format)) {
+            $data['sample_code_format']=(string)$xml->general->sample_code_format;
           }if(isset($xml->general->serial_no)) {
             $data['serial_no']=(string)$xml->general->serial_no;
           }if(isset($xml->general->date_dispatched_from_clinic_to_lab)) {
@@ -369,6 +534,10 @@ try {
             $data['lab_tested_date']=(string)$xml->general->lab_tested_date;
           }if(isset($xml->general->date_result_printed)) {
             $data['date_result_printed']=(string)$xml->general->date_result_printed;
+          }if(isset($xml->general->request_mail_sent)) {
+            $data['request_mail_sent']=(string)$xml->general->request_mail_sent;
+          }if(isset($xml->general->result_mail_sent)) {
+            $data['result_mail_sent']=(string)$xml->general->result_mail_sent;
           }if(isset($xml->general->test_request_export)) {
             $data['test_request_export']=(string)$xml->general->test_request_export;
           }if(isset($xml->general->test_request_import)) {
@@ -377,15 +546,16 @@ try {
             $data['test_result_export']=(string)$xml->general->test_result_export;
           }if(isset($xml->general->test_result_import)) {
             $data['test_result_import']=(string)$xml->general->test_result_import;
+          }if(isset($xml->general->result_coming_from)) {
+            $data['result_coming_from']=(string)$xml->general->result_coming_from;
           }
-          //final flag set
+          //request/result flag set
           if(isset($param) && $param == 'request'){
             $data['test_request_import'] = 1;
           }if(isset($param) && $param == 'result'){
             $data['test_result_import'] = 1;
           }
         }
-        //print_r($data);die;
         $sampleQuery = 'select vl_sample_id from vl_request_form where sample_code = "'.(string)$xml->general->sample_code.'"';
         $sampleResult = $db->rawQuery($sampleQuery);
         if(isset($sampleResult[0]['vl_sample_id'])){
@@ -400,8 +570,6 @@ try {
           }
         }else{
           if(isset($param) && $param == 'request'){
-             $data['created_by'] = 1;
-             $data['created_on'] = $general->getDateTime();
              $id = $db->insert($tableName,$data);
              //update xml node element
               //$info = simplexml_load_file($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "new" . DIRECTORY_SEPARATOR . $file);
@@ -421,14 +589,14 @@ try {
         }
       }
     }
-    //sync vl result status
+    //sync vl result import status
     if(isset($param) && $param == 'result'){
       if(file_exists($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced")){
         $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "result" . DIRECTORY_SEPARATOR . "synced");
         foreach($files as $file) {
            if(in_array($file, array(".",".."))) continue;
            $sampleCode = explode(".",$file);
-           $vlQuery="SELECT sample_code FROM vl_request_form as vl LEFT JOIN facility_details as f ON vl.facility_id=f.facility_id LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
+           $vlQuery="SELECT sample_code FROM vl_request_form as vl WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_result_import = 0";
            $vlResult = $db->rawQuery($vlQuery);
            if(isset($vlResult[0]['sample_code'])){
               $db=$db->where('sample_code',$vlResult[0]['sample_code']);

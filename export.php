@@ -19,10 +19,10 @@ try {
   $configResult = $db->rawQuery($configQuery);
   $vlResult = array();
   if(isset($param) && $param == 'request'){
-    $vlQuery="SELECT * FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND vl.test_request_export = 0";
+    $vlQuery="SELECT vl.*,f.*,ts.*,s.*,art.*,b.batch_id,b.machine,b.batch_code,b.batch_code_key,b.batch_status,cby.user_name as createdBy,cbyr.role_name as createdByRole,mby.user_name as modifiedBy,mbyr.role_name as modifiedByRole,appby.user_name as approvedBy,appbyr.role_name as approvedByRole,revby.user_name as reviewedBy,revbyr.role_name as reviewedByRole FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id INNER JOIN user_details as cby ON cby.user_id = vl.created_by INNER JOIN roles as cbyr ON cbyr.role_id = cby.role_id LEFT JOIN user_details as mby ON mby.user_id = vl.modified_by LEFT JOIN roles as mbyr ON mbyr.role_id = mby.role_id LEFT JOIN user_details as appby ON appby.user_id = vl.result_approved_by LEFT JOIN roles as appbyr ON appbyr.role_id = appby.role_id LEFT JOIN user_details as revby ON revby.user_id = vl.result_reviewed_by LEFT JOIN roles as revbyr ON revbyr.role_id = revby.role_id WHERE vl.form_id = $country AND vl.test_request_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
   }else if(isset($param) && $param == 'result'){
-    $vlQuery="SELECT * FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.form_id = $country AND (vl.result!= '' AND vl.result IS NOT NULL) AND vl.test_result_export = 0";
+    $vlQuery="SELECT vl.*,f.*,ts.*,s.*,art.*,b.batch_id,b.machine,b.batch_code,b.batch_code_key,b.batch_status,cby.user_name as createdBy,cbyr.role_name as createdByRole,mby.user_name as modifiedBy,mbyr.role_name as modifiedByRole,appby.user_name as approvedBy,appbyr.role_name as approvedByRole,revby.user_name as reviewedBy,revbyr.role_name as reviewedByRole FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id INNER JOIN user_details as cby ON cby.user_id = vl.created_by INNER JOIN roles as cbyr ON cbyr.role_id = cby.role_id LEFT JOIN user_details as mby ON mby.user_id = vl.modified_by LEFT JOIN roles as mbyr ON mbyr.role_id = mby.role_id LEFT JOIN user_details as appby ON appby.user_id = vl.result_approved_by LEFT JOIN roles as appbyr ON appbyr.role_id = appby.role_id LEFT JOIN user_details as revby ON revby.user_id = vl.result_reviewed_by LEFT JOIN roles as revbyr ON revbyr.role_id = revby.role_id WHERE vl.form_id = $country AND (vl.result!= '' AND vl.result IS NOT NULL) AND vl.test_result_export = 0";
     $vlResult = $db->rawQuery($vlQuery);
   }
   if(count($vlResult) >0){
@@ -50,12 +50,30 @@ try {
         foreach($vlResult as $vl){
           //xml file creation start
           $machine = '';
+          $modifiedBy = '';
+          $modifiedByRole = '';
+          $approvedBy = '';
+          $approvedByRole = '';
+          $reviewedBy = '';
+          $reviewedByRole = '';
           if(isset($vl['machine']) && $vl['machine'] >0){
             $machine = $vl['machine'];
           }if(isset($param) && $param == 'request'){
             $vl['test_request_export'] = 1;
           }if(isset($param) && $param == 'result'){
             $vl['test_result_export'] = 1;
+          }if(isset($vl['modifiedBy'])){
+            $modifiedBy = $vl['modifiedBy'];
+          }if(isset($vl['modifiedByRole'])){
+            $modifiedByRole = $vl['modifiedByRole'];
+          }if(isset($vl['approvedBy'])){
+            $approvedBy = $vl['approvedBy'];
+          }if(isset($vl['approvedByRole'])){
+            $approvedByRole = $vl['approvedByRole'];
+          }if(isset($vl['reviewedBy'])){
+            $reviewedBy = $vl['reviewedBy'];
+          }if(isset($vl['reviewedByRole'])){
+            $reviewedByRole = $vl['reviewedByRole'];
           }
           $xmlData = '';
           $xmlData.= "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
@@ -115,7 +133,6 @@ try {
               $xmlData.="<missing_sample_type>".$vl['missing_sample_type']."</missing_sample_type>\n";
               $xmlData.="<request_clinician>".$vl['request_clinician']."</request_clinician>\n";
               $xmlData.="<clinician_ph_no>".$vl['clinician_ph_no']."</clinician_ph_no>\n";
-              $xmlData.="<sample_testing_date>".$vl['sample_testing_date']."</sample_testing_date>\n";
               $xmlData.="<vl_focal_person>".$vl['vl_focal_person']."</vl_focal_person>\n";
               $xmlData.="<focal_person_phone_number>".$vl['focal_person_phone_number']."</focal_person_phone_number>\n";
               $xmlData.="<email_for_HF>".$vl['email_for_HF']."</email_for_HF>\n";
@@ -124,13 +141,13 @@ try {
               $xmlData.="<rejection>".$vl['rejection']."</rejection>\n";
               $xmlData.="<sample_rejection_facility>".$vl['sample_rejection_facility']."</sample_rejection_facility>\n";
               $xmlData.="<sample_rejection_reason>".$vl['sample_rejection_reason']."</sample_rejection_reason>\n";
-              $xmlData.="<other_id>".$vl['other_id']."</other_id>\n";
               $xmlData.="<age_in_yrs>".$vl['age_in_yrs']."</age_in_yrs>\n";
               $xmlData.="<age_in_mnts>".$vl['age_in_mnts']."</age_in_mnts>\n";
               $xmlData.="<treatment_initiated_date>".$vl['treatment_initiated_date']."</treatment_initiated_date>\n";
               $xmlData.="<arc_no>".$vl['arc_no']."</arc_no>\n";
               $xmlData.="<treatment_details>".$vl['treatment_details']."</treatment_details>\n";
               $xmlData.="<drug_substitution>".$vl['drug_substitution']."</drug_substitution>\n";
+              $xmlData.="<collected_by>".$vl['collected_by']."</collected_by>\n";
               $xmlData.="<support_partner>".$vl['support_partner']."</support_partner>\n";
               $xmlData.="<has_patient_changed_regimen>".$vl['has_patient_changed_regimen']."</has_patient_changed_regimen>\n";
               $xmlData.="<reason_for_regimen_change>".$vl['reason_for_regimen_change']."</reason_for_regimen_change>\n";
@@ -147,7 +164,7 @@ try {
               $xmlData.="<testing_status>".$vl['status_name']."</testing_status>\n";
             $xmlData.="</sample>";
             $xmlData.="<lab>";
-            if(isset($vl['lab_id']) && trim($vl['lab_id'])!=""){
+            if(isset($vl['lab_id']) && trim($vl['lab_id'])!= ""){
               $fQuery="SELECT * FROM facility_details WHERE facility_type ='2' AND facility_id='".$vl['lab_id']."'";
               $fResult = $db->query($fQuery);
               $xmlData.="<lab_name>".$fResult[0]['facility_name']."</lab_name>\n";
@@ -167,10 +184,16 @@ try {
             $xmlData.="<result>";
               $xmlData.="<log_value>".$vl['log_value']."</log_value>\n";
               $xmlData.="<absolute_value>".$vl['absolute_value']."</absolute_value>\n";
+              $xmlData.="<absolute_decimal_value>".$vl['absolute_decimal_value']."</absolute_decimal_value>\n";
               $xmlData.="<text_value>".$vl['text_value']."</text_value>\n";
               $xmlData.="<result>".$vl['result']."</result>\n";
               $xmlData.="<comments>".$vl['comments']."</comments>\n";
               $xmlData.="<justification>".$vl['justification']."</justification>\n";
+              $xmlData.="<result_approved_by>".$approvedBy."</result_approved_by>\n";
+              $xmlData.="<result_approved_by_role>".$approvedByRole."</result_approved_by_role>\n";
+              $xmlData.="<result_approved_on>".$vl['result_approved_on']."</result_approved_on>\n";
+              $xmlData.="<result_reviewed_by>".$reviewedBy."</result_reviewed_by>\n";
+              $xmlData.="<result_reviewed_by_role>".$reviewedByRole."</result_reviewed_by_role>\n";
               $xmlData.="<result_reviewed_date>".$vl['result_reviewed_date']."</result_reviewed_date>\n";
               $xmlData.="<test_methods>".$vl['test_methods']."</test_methods>\n";
               $xmlData.="<contact_complete_status>".$vl['contact_complete_status']."</contact_complete_status>\n";
@@ -184,11 +207,10 @@ try {
               $xmlData.="<form_id>".$country."</form_id>\n";
               $xmlData.="<serial_no>".$vl['serial_no']."</serial_no>\n";
               $xmlData.="<sample_code>".$vl['sample_code']."</sample_code>\n";
-              $xmlData.="<date_generated>".$vl['created_on']."</date_generated>";
-              $xmlData.="<date_modified>".$vl['modified_on']."</date_modified>";
+              $xmlData.="<sample_code_key>".$vl['sample_code_key']."</sample_code_key>\n";
+              $xmlData.="<sample_code_format>".$vl['sample_code_format']."</sample_code_format>\n";
               $xmlData.="<machine_id>".$machine."</machine_id>";
               $xmlData.="<urgency>".$vl['urgency']."</urgency>\n";
-              $xmlData.="<nation_identifier>".$vl['nation_identifier']."</nation_identifier>\n";
               $xmlData.="<batch_code>".$vl['batch_code']."</batch_code>\n";
               $xmlData.="<batch_code_key>".$vl['batch_code_key']."</batch_code_key>\n";
               $xmlData.="<batch_status>".$vl['batch_status']."</batch_status>\n";
@@ -196,10 +218,19 @@ try {
               $xmlData.="<date_of_completion_of_viral_load>".$vl['date_of_completion_of_viral_load']."</date_of_completion_of_viral_load>\n";
               $xmlData.="<lab_tested_date>".$vl['lab_tested_date']."</lab_tested_date>\n";
               $xmlData.="<date_result_printed>".$vl['date_result_printed']."</date_result_printed>\n";
+              $xmlData.="<request_mail_sent>".$vl['request_mail_sent']."</request_mail_sent>\n";
+              $xmlData.="<result_mail_sent>".$vl['result_mail_sent']."</result_mail_sent>\n";
               $xmlData.="<test_request_export>".$vl['test_request_export']."</test_request_export>\n";
               $xmlData.="<test_request_import>".$vl['test_request_import']."</test_request_import>\n";
               $xmlData.="<test_result_export>".$vl['test_result_export']."</test_result_export>\n";
               $xmlData.="<test_result_import>".$vl['test_result_import']."</test_result_import>\n";
+              $xmlData.="<result_coming_from>".$vl['result_coming_from']."</result_coming_from>\n";
+              $xmlData.="<created_by>".$vl['createdBy']."</created_by>\n";
+              $xmlData.="<created_by_role>".$vl['createdByRole']."</created_by_role>\n";
+              $xmlData.="<date_generated>".$vl['created_on']."</date_generated>";
+              $xmlData.="<modified_by>".$modifiedBy."</modified_by>\n";
+              $xmlData.="<modified_by_role>".$modifiedByRole."</modified_by_role>\n";
+              $xmlData.="<date_modified>".$vl['modified_on']."</date_modified>";
             $xmlData.="</general>";
           $xmlData .="</vlsm>";
           //xml file creation end
@@ -222,14 +253,14 @@ try {
        }
     }
   }
-  //sync vl request status
+  //sync vl request import status
   if(isset($param) && $param == 'request'){
     if(file_exists($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced")){
       $files = scandir($configResult[0]['value'] . DIRECTORY_SEPARATOR . "request" . DIRECTORY_SEPARATOR . "synced");
       foreach($files as $file) {
          if(in_array($file, array(".",".."))) continue;
          $sampleCode = explode(".",$file);
-         $vlQuery="SELECT sample_code FROM vl_request_form as vl INNER JOIN facility_details as f ON vl.facility_id=f.facility_id INNER JOIN testing_status as ts ON ts.status_id=vl.status LEFT JOIN r_sample_type as s ON s.sample_id=vl.sample_id LEFT JOIN r_art_code_details as art ON vl.current_regimen=art.art_id LEFT JOIN batch_details as b ON b.batch_id=vl.batch_id WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_request_import = 0";
+         $vlQuery="SELECT sample_code FROM vl_request_form as vl WHERE vl.sample_code = '".$sampleCode[0]."' AND vl.test_request_import = 0";
          $vlResult = $db->rawQuery($vlQuery);
          if(isset($vlResult[0]['sample_code'])){
             $db=$db->where('sample_code',$vlResult[0]['sample_code']);
