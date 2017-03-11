@@ -206,11 +206,11 @@ try {
             $xmlData.="<general>";
               $xmlData.="<form_id>".$country."</form_id>\n";
               $xmlData.="<serial_no>".$vl['serial_no']."</serial_no>\n";
+              $xmlData.="<urgency>".$vl['urgency']."</urgency>\n";
               $xmlData.="<sample_code>".$vl['sample_code']."</sample_code>\n";
               $xmlData.="<sample_code_key>".$vl['sample_code_key']."</sample_code_key>\n";
               $xmlData.="<sample_code_format>".$vl['sample_code_format']."</sample_code_format>\n";
               $xmlData.="<machine_id>".$machine."</machine_id>";
-              $xmlData.="<urgency>".$vl['urgency']."</urgency>\n";
               $xmlData.="<batch_code>".$vl['batch_code']."</batch_code>\n";
               $xmlData.="<batch_code_key>".$vl['batch_code_key']."</batch_code_key>\n";
               $xmlData.="<batch_status>".$vl['batch_status']."</batch_status>\n";

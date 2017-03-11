@@ -236,9 +236,9 @@ try {
                  $data['sample_id'] = $specimenResult[0]['sample_id'];
               }else{
                  $sampleTypeData = array(
-                                   'sample_name'=>(string)$xml->sample->sample_type,
-                                   'status'=>'active'
-                                );
+                    'sample_name'=>(string)$xml->sample->sample_type,
+                    'status'=>'active'
+                 );
                  $id = $db->insert('r_sample_type',$sampleTypeData);
                  $data['sample_id'] = $id;
               }
@@ -275,10 +275,10 @@ try {
                $data['lab_id'] = $labResult[0]['facility_id'];
             }else{
                $labData = array(
-                                 'facility_name'=>(string)$xml->lab->lab_name,
-                                 'facility_type'=>2,
-                                 'status'=>'active'
-                             );
+                  'facility_name'=>(string)$xml->lab->lab_name,
+                  'facility_type'=>2,
+                  'status'=>'active'
+                );
                $id = $db->insert('facility_details',$labData);
                $data['lab_id'] = $id;
             }
@@ -508,6 +508,7 @@ try {
                 $batch_status = (string)$xml->general->batch_status;
               }
               $batchData = array(
+                  'machine'=>(string)$xml->general->machine_id,
                   'batch_code'=>(string)$xml->general->batch_code,
                   'batch_code_key'=>$batch_code_key,
                   'batch_status'=>$batch_status
